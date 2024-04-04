@@ -1,8 +1,8 @@
-import { Type, Static } from '@sinclair/typebox'
-import { FilteredPieceBehavior } from './platform.model'
-import { FederatedAuthnProviderConfig } from '../federated-authn'
+import { Static, Type } from '@sinclair/typebox'
 import { LocalesEnum } from '../common'
 import { ApId } from '../common/id-generator'
+import { FederatedAuthnProviderConfig } from '../federated-authn'
+import { FilteredPieceBehavior } from './platform.model'
 
 export const UpdatePlatformRequestBody = Type.Object({
     name: Type.Optional(Type.String()),
@@ -18,9 +18,7 @@ export const UpdatePlatformRequestBody = Type.Object({
     smtpPassword: Type.Optional(Type.String()),
     smtpSenderEmail: Type.Optional(Type.String()),
     smtpUseSSL: Type.Optional(Type.Boolean()),
-    privacyPolicyUrl: Type.Optional(Type.String()),
     federatedAuthProviders: Type.Optional(FederatedAuthnProviderConfig),
-    termsOfServiceUrl: Type.Optional(Type.String()),
     cloudAuthEnabled: Type.Optional(Type.Boolean()),
     emailAuthEnabled: Type.Optional(Type.Boolean()),
     allowedAuthDomains: Type.Optional(Type.Array(Type.String())),

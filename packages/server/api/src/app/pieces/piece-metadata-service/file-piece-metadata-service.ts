@@ -1,29 +1,31 @@
 import { readdir, stat } from 'node:fs/promises'
-import { resolve, join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { cwd } from 'node:process'
-import { Piece, PieceMetadata } from '@activepieces/pieces-framework'
-import {
-    ActivepiecesError,
-    ApEdition,
-    EXACT_VERSION_PATTERN,
-    ErrorCode,
-    PackageType,
-    PieceType,
-    ProjectId,
-    extractPieceFromModule,
-    isNil,
-} from '@activepieces/shared'
-import { PieceMetadataService } from './piece-metadata-service'
 import importFresh from 'import-fresh'
+import { nanoid } from 'nanoid'
+import { getEdition } from '../../helper/secret-helper'
 import {
     PieceMetadataModel,
     PieceMetadataModelSummary,
+    PieceMetadataSchema,
 } from '../piece-metadata-entity'
 import { pieceMetadataServiceHooks } from './hooks'
-import { nanoid } from 'nanoid'
-import { exceptionHandler, logger } from 'server-shared'
+import { PieceMetadataService } from './piece-metadata-service'
 import { toPieceMetadataModelSummary } from '.'
-import { getEdition } from '../../helper/secret-helper'
+import { Piece, PieceMetadata } from '@activepieces/pieces-framework'
+import { exceptionHandler, logger } from '@activepieces/server-shared'
+import {
+    ActivepiecesError,
+    ApEdition,
+    ErrorCode,
+    EXACT_VERSION_PATTERN,
+    extractPieceFromModule,
+    isNil,
+    ListVersionsResponse,
+    PackageType,
+    PieceType,
+    ProjectId,
+} from '@activepieces/shared'
 
 const loadPiecesMetadata = async (): Promise<PieceMetadata[]> => {
     const pieces = await findAllPieces()
@@ -107,10 +109,11 @@ export const FilePieceMetadataService = (): PieceMetadataService => {
     return {
         async list(params): Promise<PieceMetadataModelSummary[]> {
             const { projectId } = params
-            const originalPiecesMetadata = (await loadPiecesMetadata()).map((p) => {
+            const originalPiecesMetadata: PieceMetadataSchema[] = (await loadPiecesMetadata()).map((p) => {
                 return {
                     id: nanoid(),
                     ...p,
+                    projectUsage: 0,
                     pieceType: PieceType.OFFICIAL,
                     packageType: PackageType.REGISTRY,
                     created: new Date().toISOString(),
@@ -132,7 +135,14 @@ export const FilePieceMetadataService = (): PieceMetadataService => {
             return toPieceMetadataModelSummary(filteredPieces, originalPiecesMetadata, params.suggestionType)
 
         },
-
+        async updateUsage() {
+            throw new Error('Updating pieces is not supported in development mode')
+        },
+        async getVersions(params): Promise<ListVersionsResponse> {
+            const piecesMetadata = await loadPiecesMetadata()
+            const pieceMetadata = piecesMetadata.find((p) => p.name === params.name)
+            return pieceMetadata?.version ? { [pieceMetadata.version]: {} } : {}
+        },
         async getOrThrow({
             name,
             version,
@@ -194,6 +204,7 @@ const toPieceMetadataModel = ({
         logoUrl: pieceMetadata.logoUrl,
         version: pieceMetadata.version,
         auth: pieceMetadata.auth,
+        projectUsage: 0,
         minimumSupportedRelease: pieceMetadata.minimumSupportedRelease,
         maximumSupportedRelease: pieceMetadata.maximumSupportedRelease,
         actions: pieceMetadata.actions,

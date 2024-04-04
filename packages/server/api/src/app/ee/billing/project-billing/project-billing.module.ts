@@ -1,20 +1,20 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox'
-import { TASKS_PAYG_PRICE_ID, stripeHelper, stripeWebhookSecret } from './stripe-helper'
-import { ALL_PRINCIPAL_TYPES, FlowRun, PrincipalType, assertNotNullOrUndefined, isNil } from '@activepieces/shared'
-import { projectBillingService } from './project-billing.service'
+import dayjs from 'dayjs'
 import { FastifyRequest } from 'fastify'
-import { exceptionHandler, logger } from 'server-shared'
 import { StatusCodes } from 'http-status-codes'
 import Stripe from 'stripe'
-import { redisSystemJob } from '../../helper/redis-system-job'
-import dayjs from 'dayjs'
+import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm'
 import { databaseConnection } from '../../../database/database-connection'
 import { FlowRunEntity } from '../../../flows/flow-run/flow-run-entity'
-import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm'
-import { projectLimitsService } from '../../project-plan/project-plan.service'
-import { ApSubscriptionStatus, DEFAULT_FREE_PLAN_LIMIT } from '@activepieces/ee-shared'
-import { projectUsageService } from '../../../project/usage/project-usage-service'
+import { systemJobsSchedule } from '../../../helper/system-jobs'
 import { projectService } from '../../../project/project-service'
+import { projectUsageService } from '../../../project/usage/project-usage-service'
+import { projectLimitsService } from '../../project-plan/project-plan.service'
+import { projectBillingService } from './project-billing.service'
+import { stripeHelper, stripeWebhookSecret, TASKS_PAYG_PRICE_ID } from './stripe-helper'
+import { ApSubscriptionStatus, DEFAULT_FREE_PLAN_LIMIT } from '@activepieces/ee-shared'
+import { exceptionHandler, logger } from '@activepieces/server-shared'
+import { ALL_PRINCIPAL_TYPES, assertNotNullOrUndefined, FlowRun, isNil, PrincipalType } from '@activepieces/shared'
 
 const flowRunRepo =
     databaseConnection.getRepository<FlowRun>(FlowRunEntity)
@@ -22,7 +22,7 @@ const flowRunRepo =
 const EVERY_4_HOURS = '59 */4 * * *'
 
 export const projectBillingModule: FastifyPluginAsyncTypebox = async (app) => {
-    await redisSystemJob.upsertJob({
+    await systemJobsSchedule.upsertJob({
         job: {
             name: 'project-usage-report',
             data: {},

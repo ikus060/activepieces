@@ -1,22 +1,20 @@
-import {
-    ActivepiecesError,
-    ErrorCode,
-    LocalesEnum,
-    UserId,
-    apId,
-    isNil,
-    spreadIfDefined,
-} from '@activepieces/shared'
 import { databaseConnection } from '../database/database-connection'
-import { PlatformEntity } from './platform.entity'
-import {
-    FilteredPieceBehavior,
-    Platform,
-    PlatformId,
-    UpdatePlatformRequestBody,
-} from '@activepieces/shared'
 import { defaultTheme } from '../flags/theme'
 import { userService } from '../user/user-service'
+import { PlatformEntity } from './platform.entity'
+import {
+    ActivepiecesError,
+    apId,
+    ErrorCode,
+    FilteredPieceBehavior,
+
+    isNil,
+    LocalesEnum,
+    Platform,
+    PlatformId,
+    spreadIfDefined,
+    UpdatePlatformRequestBody,
+    UserId } from '@activepieces/shared'
 
 const repo = databaseConnection.getRepository<Platform>(PlatformEntity)
 
@@ -98,8 +96,6 @@ export const platformService = {
             ...spreadIfDefined('smtpPassword', params.smtpPassword),
             ...spreadIfDefined('smtpSenderEmail', params.smtpSenderEmail),
             ...spreadIfDefined('smtpUseSSL', params.smtpUseSSL),
-            ...spreadIfDefined('privacyPolicyUrl', params.privacyPolicyUrl),
-            ...spreadIfDefined('termsOfServiceUrl', params.termsOfServiceUrl),
             ...spreadIfDefined('cloudAuthEnabled', params.cloudAuthEnabled),
             ...spreadIfDefined('defaultLocale', params.defaultLocale),
             ...spreadIfDefined('showPoweredBy', params.showPoweredBy),

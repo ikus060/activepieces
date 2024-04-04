@@ -1,11 +1,11 @@
-import { ApEdition, ApFlagId, Flag, isNil } from '@activepieces/shared'
-import { databaseConnection } from '../database/database-connection'
-import { system, SystemProp } from 'server-shared'
-import { FlagEntity } from './flag.entity'
 import axios from 'axios'
-import { webhookService } from '../webhooks/webhook-service'
+import { databaseConnection } from '../database/database-connection'
 import { getEdition, getSupportedAppWebhooks } from '../helper/secret-helper'
+import { webhookService } from '../webhooks/webhook-service'
+import { FlagEntity } from './flag.entity'
 import { defaultTheme } from './theme'
+import { system, SystemProp } from '@activepieces/server-shared'
+import { ApEdition, ApFlagId, Flag, isNil } from '@activepieces/shared'
 
 const flagRepo = databaseConnection.getRepository(FlagEntity)
 
@@ -32,6 +32,12 @@ export const flagService = {
             {
                 id: ApFlagId.ENVIRONMENT,
                 value: system.get(SystemProp.ENVIRONMENT),
+                created,
+                updated,
+            },
+            {
+                id: ApFlagId.PIECES_SYNC_MODE,
+                value: system.get(SystemProp.PIECES_SYNC_MODE),
                 created,
                 updated,
             },
@@ -226,7 +232,7 @@ export const flagService = {
         hostname: string | undefined,
     ): string {
         const isCustomerPlatform =
-      platformId && !flagService.isCloudPlatform(platformId)
+            platformId && !flagService.isCloudPlatform(platformId)
         if (isCustomerPlatform) {
             return `https://${hostname}/redirect`
         }
@@ -262,11 +268,11 @@ export const flagService = {
 }
 
 export type FlagType =
-  | BaseFlagStructure<ApFlagId.FRONTEND_URL, string>
-  | BaseFlagStructure<ApFlagId.PLATFORM_CREATED, boolean>
-  | BaseFlagStructure<ApFlagId.TELEMETRY_ENABLED, boolean>
-  | BaseFlagStructure<ApFlagId.USER_CREATED, boolean>
-  | BaseFlagStructure<ApFlagId.WEBHOOK_URL_PREFIX, string>
+    | BaseFlagStructure<ApFlagId.FRONTEND_URL, string>
+    | BaseFlagStructure<ApFlagId.PLATFORM_CREATED, boolean>
+    | BaseFlagStructure<ApFlagId.TELEMETRY_ENABLED, boolean>
+    | BaseFlagStructure<ApFlagId.USER_CREATED, boolean>
+    | BaseFlagStructure<ApFlagId.WEBHOOK_URL_PREFIX, string>
 
 type BaseFlagStructure<K extends ApFlagId, V> = {
     id: K

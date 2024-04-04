@@ -1,5 +1,6 @@
-import { PopulatedFlow, isNil } from '@activepieces/shared'
 import { Static, Type } from '@sinclair/typebox'
+import { GitFile } from './project-diff.service'
+import { isNil, PopulatedFlow } from '@activepieces/shared'
 
 export class ProjectMappingState {
     flows: Record<string, {
@@ -19,6 +20,25 @@ export class ProjectMappingState {
                     sourceId,
                 },
             },
+        })
+    }
+
+    clean({ projectFlows, gitFiles }: { projectFlows: PopulatedFlow[], gitFiles: GitFile[] }): ProjectMappingState {
+        const sourceIds = new Set(gitFiles.map(f => f.baseFilename))
+        const targetIds = new Set(projectFlows.map(f => f.id))
+        const filtered = Object.entries(this.flows).filter(([targetId, { sourceId }]) => {
+            return sourceIds.has(sourceId) && targetIds.has(targetId)
+        })
+        return new ProjectMappingState({
+            flows: Object.fromEntries(filtered),
+        })
+    }
+
+    deleteFlow(targetId: string): ProjectMappingState {
+        const { [targetId]: _, ...rest } = this.flows
+        return new ProjectMappingState({
+            ...this,
+            flows: rest,
         })
     }
 
@@ -42,7 +62,7 @@ export class ProjectMappingState {
         }
         return state.sourceId
     }
-    
+
     findTargetId(sourceId: string): string | undefined {
         return Object.entries(this.flows).find(([_, value]) => value.sourceId === sourceId)?.[0]
     }
